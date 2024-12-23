@@ -1,3 +1,3 @@
 # Mini-games
-- [🔡 motus](./motus) 
-- [🔢 2048](./2048) 
+- [🔡 motus](Moha-Dan/motus) 
+- [🔢 2048](Moha-Dan/2048) 
