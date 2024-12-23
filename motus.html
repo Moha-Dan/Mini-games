@@ -28,6 +28,7 @@
             color: #eee;
             padding: 1em;
             border: none;
+            width:4em;
             aspect-ratio: 1;
             border-radius: 5px;
             transition: all 0.4s;
@@ -92,7 +93,7 @@
     </section>
     <dialog id="end-dialog">
         <p id="end-message"></p>
-        <button onclick="startParty();ELS.dialog.open = false">Rejouer</button>
+        <button onclick="location.reload();ELS.dialog.open = false">Rejouer</button>
     </dialog>
     <script>
         const ELS = {
