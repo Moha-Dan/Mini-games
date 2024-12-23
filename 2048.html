@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>2048 Game</title>
+    <style>
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            background: #faf8ef;
+            font-family: Arial, sans-serif;
+        }
+        #game {
+            display: grid;
+            grid-template-columns: repeat(4, 80px);
+            gap: 10px;
+            background: #bbada0;
+            padding: 10px;
+            border-radius: 10px;
+            touch-action: none; /* Disable scrolling for swipe gestures */
+        }
+        .tile {
+            width: 80px;
+            height: 80px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 24px;
+            font-weight: bold;
+            color: #776e65;
+            background: #cdc1b4;
+            border-radius: 5px;
+        }
+        .tile[data-value="2"] { background: #eee4da; }
+        .tile[data-value="4"] { background: #ede0c8; }
+        .tile[data-value="8"] { background: #f2b179; color: #f9f6f2; }
+        .tile[data-value="16"] { background: #f59563; color: #f9f6f2; }
+        .tile[data-value="32"] { background: #f67c5f; color: #f9f6f2; }
+        .tile[data-value="64"] { background: #f65e3b; color: #f9f6f2; }
+        .tile[data-value="128"] { background: #edcf72; color: #f9f6f2; }
+        .tile[data-value="256"] { background: #edcc61; color: #f9f6f2; }
+        .tile[data-value="512"] { background: #edc850; color: #f9f6f2; }
+        .tile[data-value="1024"] { background: #edc53f; color: #f9f6f2; }
+        .tile[data-value="2048"] { background: #edc22e; color: #f9f6f2; }
+    </style>
+</head>
+<body>
+    <div id="game"></div>
+    <script>
+        const size = 4;
+        let board = Array(size * size).fill(0);
+
+        function initGame() {
+            spawnTile();
+            spawnTile();
+            renderBoard();
+        }
+
+        function renderBoard() {
+            const gameDiv = document.getElementById("game");
+            gameDiv.innerHTML = "";
+            board.forEach((value) => {
+                const tile = document.createElement("div");
+                tile.className = "tile";
+                if (value) {
+                    tile.textContent = value;
+                    tile.setAttribute("data-value", value);
+                }
+                gameDiv.appendChild(tile);
+            });
+        }
+
+        function spawnTile() {
+            const emptyCells = board.map((v, i) => (v === 0 ? i : null)).filter((v) => v !== null);
+            if (emptyCells.length > 0) {
+                const randomCell = emptyCells[Math.floor(Math.random() * emptyCells.length)];
+                board[randomCell] = Math.random() < 0.9 ? 2 : 4;
+            }
+        }
+
+        function move(direction) {
+            const prevBoard = [...board];
+            for (let i = 0; i < size; i++) {
+                let row;
+                switch (direction) {
+                    case "up":
+                        row = board.filter((_, index) => index % size === i);
+                        break;
+                    case "down":
+                        row = board.filter((_, index) => index % size === i).reverse();
+                        break;
+                    case "left":
+                        row = board.slice(i * size, i * size + size);
+                        break;
+                    case "right":
+                        row = board.slice(i * size, i * size + size).reverse();
+                        break;
+                }
+                const merged = mergeRow(row);
+                if (direction === "down" || direction === "right") merged.reverse();
+                for (let j = 0; j < size; j++) {
+                    if (direction === "up" || direction === "down") {
+                        board[j * size + i] = merged[j];
+                    } else {
+                        board[i * size + j] = merged[j];
+                    }
+                }
+            }
+            if (!prevBoard.every((v, i) => v === board[i])) spawnTile();
+            renderBoard();
+            if (isGameOver()) alert("Game Over!");
+        }
+
+        function mergeRow(row) {
+            row = row.filter((v) => v !== 0);
+            for (let i = 0; i < row.length - 1; i++) {
+                if (row[i] === row[i + 1]) {
+                    row[i] *= 2;
+                    row[i + 1] = 0;
+                }
+            }
+            return row.filter((v) => v !== 0).concat(Array(size - row.length).fill(0));
+        }
+
+        function isGameOver() {
+            if (board.includes(0)) return false;
+            for (let i = 0; i < size; i++) {
+                for (let j = 0; j < size; j++) {
+                    const value = board[i * size + j];
+                    if (
+                        (j < size - 1 && value === board[i * size + j + 1]) ||
+                        (i < size - 1 && value === board[(i + 1) * size + j])
+                    ) {
+                        return false;
+                    }
+                }
+            }
+            return true;
+        }
+
+        // Add swipe controls
+        let touchStartX = 0, touchStartY = 0, touchEndX = 0, touchEndY = 0;
+
+        document.getElementById("game").addEventListener("touchstart", (e) => {
+            touchStartX = e.changedTouches[0].screenX;
+            touchStartY = e.changedTouches[0].screenY;
+        });
+
+        document.getElementById("game").addEventListener("touchend", (e) => {
+            touchEndX = e.changedTouches[0].screenX;
+            touchEndY = e.changedTouches[0].screenY;
+            handleSwipe();
+        });
+
+        function handleSwipe() {
+            const diffX = touchEndX - touchStartX;
+            const diffY = touchEndY - touchStartY;
+
+            if (Math.abs(diffX) > Math.abs(diffY)) {
+                if (diffX > 0) move("right");
+                else move("left");
+            } else {
+                if (diffY > 0) move("down");
+                else move("up");
+            }
+        }
+
+        document.addEventListener("keydown", (e) => {
+            switch (e.key) {
+                case "ArrowUp":
+                    move("up");
+                    break;
+                case "ArrowDown":
+                    move("down");
+                    break;
+                case "ArrowLeft":
+                    move("left");
+                    break;
+                case "ArrowRight":
+                    move("right");
+                    break;
+            }
+        });
+
+        initGame();
+    </script>
+</body>
+</html>
