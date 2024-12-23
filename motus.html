@@ -92,7 +92,7 @@
     </section>
     <dialog id="end-dialog">
         <p id="end-message"></p>
-        <button onclick="location.reload();ELS.dialog.open = false">Rejouer</button>
+        <button onclick="startParty();ELS.dialog.open = false">Rejouer</button>
     </dialog>
     <script>
         const ELS = {
@@ -108,45 +108,64 @@
         let input = [];
         let saved = [];
 
-        async function startParty() {
-            const data = await (await fetch("https://trouve-mot.fr/api/random/2")).json();
+async function startParty() {
+    // Réinitialisation des éléments
+    ELS.input.innerHTML = "...";
+    const data = await (await fetch("https://trouve-mot.fr/api/random/2")).json();
 
-            const word = data[0];
-            goal = word.name;
-            const hint = word.categorie;
-            input = [];
-            saved=[]
+    const word = data[0];
+    console.log(word.name);
+    goal = word.name;
+    const hint = word.categorie;
+    input = [];
+    saved = [];
 
-            ELS.hintBTN.classList.remove("show-hint");
-            ELS.hint.textContent = hint;
-            ELS.letters.innerHTML = "";
-            ELS.input.innerHTML = "";
+    // Mise à jour des indices et du mot à deviner
+    ELS.hintBTN.classList.remove("show-hint");
+    ELS.hint.textContent = hint;
+    ELS.letters.innerHTML = "";
+    ELS.input.innerHTML = "";
 
-            for (let i = 0; i < goal.length; i++) {
-                const span = document.createElement("span");
-                ELS.input.appendChild(span);
-            }
+    // Création des espaces pour les lettres
+    for (let i = 0; i < goal.length; i++) {
+        const span = document.createElement("span");
+        ELS.input.appendChild(span);
+    }
 
-            const letters = new Set(goal.split(""));
-            goal.split('').forEach(letter => letters.add(letter));
+    // Création des boutons pour chaque lettre unique
+    const letters = new Set(goal.split(""));
+    goal.split("").forEach((letter) => letters.add(letter));
 
-            letters.forEach(letter => {
-                const btn = document.createElement("button");
-				const key = Math.floor(Math.random() * letters.size)
-				btn.style.order = key
-                btn.textContent = letter;
-                btn.onclick = () => handleInput(letter);
-                ELS.letters.appendChild(btn);
-            });
+    letters.forEach((letter) => {
+        createButton(letter);
+    });
 
-            const backspace = document.createElement("button");
-            backspace.textContent = "<=";
-            backspace.style.order = letters.size+1
-            backspace.onclick = () => handleInput("BACKSPACE");
-            ELS.letters.appendChild(backspace);
-        }
+    // Création du bouton de suppression
+    const backspace = document.createElement("button");
+    backspace.textContent = "<=";
+    backspace.style.order = letters.size + 1;
+    backspace.onclick = () => handleInput("BACKSPACE");
+    ELS.letters.appendChild(backspace);
+}
+
+function createButton(letter) {
+    // Création dynamique d'un bouton
+    const btn = document.createElement("button");
+    btn.textContent = letter;
+    btn.style.order = Math.floor(Math.random() * 100); // Distribution aléatoire
+
+    // Attachement de l'événement click
+    btn.addEventListener("click", () => {
+        console.log(letter);
+        handleInput(letter);
+    });
+
+    // Ajout du bouton à l'interface
+    ELS.letters.appendChild(btn);
+}
 
         function handleInput(letter) {
+        	console.log(letter)
             if (letter === "BACKSPACE") {
                 input.pop();
             } else if (input.length < goal.length) {
