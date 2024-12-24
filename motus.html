@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="fr">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -23,7 +23,7 @@
             flex-wrap: wrap;
             margin: 20px 0;
         }
-        button {
+		button {
             background: #568;
             color: #eee;
             padding: 1em;
@@ -79,6 +79,7 @@
         dialog button {
             margin-top: 1em;
             padding: 0.5em 1em;
+            width:auto;
         }
     </style>
 </head>
@@ -93,7 +94,7 @@
     </section>
     <dialog id="end-dialog">
         <p id="end-message"></p>
-        <button onclick="location.reload();ELS.dialog.open = false">Rejouer</button>
+        <button onclick="startParty();ELS.dialog.close()">Rejouer</button>
     </dialog>
     <script>
         const ELS = {
@@ -134,11 +135,11 @@ async function startParty() {
     }
 
     // Création des boutons pour chaque lettre unique
-    const letters = new Set(goal.split(""));
+    const letters = new Set(data.map(x=>x.name).join('').toLowerCase().split("").sort(Math.random));
     goal.split("").forEach((letter) => letters.add(letter));
 
     letters.forEach((letter) => {
-        createButton(letter);
+        createButton(letter,letters.size);
     });
 
     // Création du bouton de suppression
@@ -149,20 +150,11 @@ async function startParty() {
     ELS.letters.appendChild(backspace);
 }
 
-function createButton(letter) {
-    // Création dynamique d'un bouton
-    const btn = document.createElement("button");
-    btn.textContent = letter;
-    btn.style.order = Math.floor(Math.random() * 100); // Distribution aléatoire
-
-    // Attachement de l'événement click
-    btn.addEventListener("click", () => {
-        console.log(letter);
-        handleInput(letter);
-    });
-
-    // Ajout du bouton à l'interface
-    ELS.letters.appendChild(btn);
+function createButton(letter,size) {
+    const key = Math.floor(Math.random() * size);
+    btn = `<button style="order:${key};" onclick="handleInput('${letter}')" >${letter}</button>`
+    console.log(btn)
+    ELS.letters.innerHTML+=btn
 }
 
         function handleInput(letter) {
@@ -228,4 +220,4 @@ function createButton(letter) {
         window.onload = startParty;
     </script>
 </body>
-</html>
+</html> 
